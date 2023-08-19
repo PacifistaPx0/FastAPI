@@ -2,6 +2,7 @@ from typing import Optional
 from fastapi import Body, FastAPI, Response, status, HTTPException
 from pydantic import BaseModel
 from random import randrange 
+import psycopg
 
 app = FastAPI()
 
@@ -9,7 +10,10 @@ class Post(BaseModel):
     title: str
     content: str
     published: bool = True
-    rating: Optional[int] = None
+    #rating: Optional[int] = None
+
+try:
+    conn = psycopg.connect(host='localhost', database, user, password)
 
 my_posts = [{"title": "My first post", "content": "Glad to be on here", "id": 1},
             {"title": "Games", "content": "Video games are great", "id": 2}]

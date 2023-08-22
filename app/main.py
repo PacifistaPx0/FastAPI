@@ -1,8 +1,9 @@
 from typing import Optional
 from fastapi import Body, FastAPI, Response, status, HTTPException
+import psycopg
 from pydantic import BaseModel
 from random import randrange 
-import psycopg
+from psycopg.rows import dict_row
 
 app = FastAPI()
 
@@ -13,7 +14,14 @@ class Post(BaseModel):
     #rating: Optional[int] = None
 
 try:
-    conn = psycopg.connect(host='localhost', database, user, password)
+    conn = psycopg.connect(host='localhost', dbname='fastapi', user='postgres', 
+                           password='thinkthank2016', row_factory=dict_row)
+    cursor = conn.cursor()
+    print("Database connection was succesful")
+except Exception as error:
+    print("conneting to database failed")
+    print("Error: ", error)
+
 
 my_posts = [{"title": "My first post", "content": "Glad to be on here", "id": 1},
             {"title": "Games", "content": "Video games are great", "id": 2}]

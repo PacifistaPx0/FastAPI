@@ -1,3 +1,4 @@
+import time
 from typing import Optional
 from fastapi import Body, FastAPI, Response, status, HTTPException
 import psycopg
@@ -13,14 +14,17 @@ class Post(BaseModel):
     published: bool = True
     #rating: Optional[int] = None
 
-try:
-    conn = psycopg.connect(host='localhost', dbname='fastapi', user='postgres', 
-                           password='thinkthank2016', row_factory=dict_row)
-    cursor = conn.cursor()
-    print("Database connection was succesful")
-except Exception as error:
-    print("conneting to database failed")
-    print("Error: ", error)
+while True:
+    try:
+        conn = psycopg.connect(host='localhost', dbname='fastapi', user='postgres', 
+                            password='thinkthank2016', row_factory=dict_row)
+        cursor = conn.cursor()
+        print("Database connection was succesful")
+        break
+    except Exception as error:
+        print("conneting to database failed")
+        print("Error: ", error)
+        time.sleep(2)
 
 
 my_posts = [{"title": "My first post", "content": "Glad to be on here", "id": 1},
@@ -41,7 +45,10 @@ async def root():
 
 @app.get("/posts")
 def get_posts():
-    return{"data": my_posts}
+    cursor.execute("rollback") #fixes the DatabaseError: current transaction is aborted, commands ignored until end of transaction block
+    cursor.execute("""SELECT * FROM posts """)
+    posts = cursor.fetchall()
+    return{"data": posts}
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_posts(post:Post):

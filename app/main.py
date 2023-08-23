@@ -43,6 +43,7 @@ def find_post_index(id):
 async def root():
     return {"message": "Hello, My World Stand"}
 
+#fetching posts from data base
 @app.get("/posts")
 def get_posts():
     cursor.execute("rollback") #fixes the DatabaseError: current transaction is aborted, commands ignored until end of transaction block
@@ -52,17 +53,23 @@ def get_posts():
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_posts(post:Post):
-    post_dict = post.dict()
-    post_dict['id'] = randrange(0,100000000)
-    my_posts.append(post_dict)
-    return {"data": post_dict}
+    cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s)
+                    RETURNING * """,(post.title, post.content, post.published))
+    new_post = cursor.fetchone() #return the post we just created
+
+    conn.commit() #to insert data into database. saved changed arent commited yet
+    return {"data": new_post}
 
 @app.get("/posts/{id}")
 def get_post(id: int):
-    post = findpost(id)
+    
+    cursor.execute("""SELECT * from posts WHERE id = %(idnumber)s""", {"idnumber": str(id)})
+    post = cursor.fetchone()
+
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
         detail=f"post with id: {id} not found")
+    
     return {"post_detail": post}
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)

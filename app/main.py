@@ -1,16 +1,27 @@
 import time
 from typing import Optional
-from fastapi import Body, FastAPI, Response, status, HTTPException
+from fastapi import Body, FastAPI, Response, status, HTTPException, Depends
 import psycopg
 from pydantic import BaseModel
 from random import randrange 
 from psycopg.rows import dict_row
 from . import models
-from .database import engine
+from .database import engine, SessionLocal
+from sqlalchemy.orm import Session
+
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+#Dependency. Session responsible for talking with database. 
+#function allows us get a session and close it after requests
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 class Post(BaseModel):
     title: str
@@ -46,6 +57,11 @@ def find_post_index(id):
 @app.get("/")
 async def root():
     return {"message": "Hello, My World Stand"}
+
+#For testing session dependency
+@app.get("/sqlalchemy")
+def test_posts(db: Session = Depends(get_db)):
+    return {"status": "Success"}
 
 #fetching posts from data base
 @app.get("/posts")

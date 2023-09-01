@@ -2,11 +2,12 @@ import time
 from typing import Optional
 from fastapi import Body, FastAPI, Response, status, HTTPException, Depends
 import psycopg
+import psycopg2
 from pydantic import BaseModel
 from random import randrange 
 from psycopg.rows import dict_row
 from . import models
-from .database import engine, SessionLocal
+from .database import engine, get_db
 from sqlalchemy.orm import Session
 
 
@@ -14,14 +15,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-#Dependency. Session responsible for talking with database. 
-#function allows us get a session and close it after requests
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+
 
 class Post(BaseModel):
     title: str

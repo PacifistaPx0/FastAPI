@@ -5,6 +5,10 @@ import psycopg
 from pydantic import BaseModel
 from random import randrange 
 from psycopg.rows import dict_row
+from . import models
+from .database import engine
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 

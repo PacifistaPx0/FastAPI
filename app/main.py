@@ -53,10 +53,16 @@ async def root():
     return {"message": "Hello, My World Stand"}
 
 #For testing session dependency
+#layout for working with an ORM 
 @app.get("/sqlalchemy")
 def test_posts(db: Session = Depends(get_db)):
-    return {"status": "Success"}
 
+    posts = db.query(models.Post).all()
+
+    return {"data": posts}
+
+
+#layout for working with raw sql within our python file
 #fetching posts from data base
 @app.get("/posts")
 def get_posts():

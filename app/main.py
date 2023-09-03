@@ -57,18 +57,21 @@ async def root():
 @app.get("/sqlalchemy")
 def test_posts(db: Session = Depends(get_db)):
 
-    posts = db.query(models.Post).all()
+    posts = db.query(models.Post)
+    print(posts)
 
-    return {"data": posts}
+    return {"data": "Successful"}
 
 
 #layout for working with raw sql within our python file
 #fetching posts from data base
 @app.get("/posts")
-def get_posts():
-    cursor.execute("rollback") #fixes the DatabaseError: current transaction is aborted, commands ignored until end of transaction block
-    cursor.execute("""SELECT * FROM posts """)
-    posts = cursor.fetchall()
+def get_posts(db: Session = Depends(get_db)):
+    #cursor.execute("rollback") #fixes the DatabaseError: current transaction is aborted, commands ignored until end of transaction block
+    #cursor.execute("""SELECT * FROM posts """)
+    #posts = cursor.fetchall()
+
+    posts = db.query(models.Post).all()
 
     if not posts:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
@@ -77,12 +80,18 @@ def get_posts():
     return{"data": posts}
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(post:Post):
-    cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s)
-                    RETURNING * """,(post.title, post.content, post.published))
-    new_post = cursor.fetchone() #return the post we just created
+def create_posts(post:Post, db: Session = Depends(get_db)):
+    #cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s)
+    #                RETURNING * """,(post.title, post.content, post.published))
+    #new_post = cursor.fetchone() #return the post we just created
 
-    conn.commit() #to insert data into database. saved changed arent commited yet
+    #conn.commit() #to insert data into database. saved changed arent commited yet
+    
+    new_post = models.Post(
+        title=post.title, content = post.content, published = post.published)
+    db.add(new_post) #add and commit to database
+    db.commit()
+    db.refresh(new_post) #this is equivalent to the returning * in sql 
     return {"data": new_post}
 
 @app.get("/posts/{id}")

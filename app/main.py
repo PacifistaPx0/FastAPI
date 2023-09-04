@@ -87,18 +87,22 @@ def create_posts(post:Post, db: Session = Depends(get_db)):
 
     #conn.commit() #to insert data into database. saved changed arent commited yet
     
-    new_post = models.Post(
-        title=post.title, content = post.content, published = post.published)
+
+    #this unpacks our entire baase model insead of typing what user needs to input 
+    #as in title = post.title
+    new_post = models.Post(**post.dict()) 
     db.add(new_post) #add and commit to database
     db.commit()
     db.refresh(new_post) #this is equivalent to the returning * in sql 
     return {"data": new_post}
 
 @app.get("/posts/{id}")
-def get_post(id: int):
+def get_post(id: int, db: Session = Depends(get_db)):
     
-    cursor.execute("""SELECT * from posts WHERE id = %(idnumber)s""", {"idnumber": str(id)})
-    post = cursor.fetchone()
+    #cursor.execute("""SELECT * from posts WHERE id = %(idnumber)s""", {"idnumber": str(id)})
+    #post = cursor.fetchone()
+
+    post = db.query(models.Post).filter(models.Post.id == id).first()#Using .all() here is a waste of time as itll keep searching through the data
 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 

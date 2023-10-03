@@ -6,7 +6,7 @@ import psycopg2
 from pydantic import BaseModel
 from random import randrange 
 from psycopg.rows import dict_row
-from . import models
+from . import models, schemas 
 from .database import engine, get_db
 from sqlalchemy.orm import Session
 
@@ -16,12 +16,6 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
-
-class Post(BaseModel):
-    title: str
-    content: str
-    published: bool = True
-    #rating: Optional[int] = None
 
 while True:
     try:
@@ -52,16 +46,6 @@ def find_post_index(id):
 async def root():
     return {"message": "Hello, My World Stand"}
 
-#For testing session dependency
-#layout for working with an ORM 
-@app.get("/sqlalchemy")
-def test_posts(db: Session = Depends(get_db)):
-
-    posts = db.query(models.Post)
-    print(posts)
-
-    return {"data": "Successful"}
-
 
 #layout for working with raw sql within our python file
 #fetching posts from data base
@@ -80,7 +64,7 @@ def get_posts(db: Session = Depends(get_db)):
     return{"data": posts}
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(post:Post, db: Session = Depends(get_db)):
+def create_posts(post:schemas.PostCreate, db: Session = Depends(get_db)):
     #cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s)
     #                RETURNING * """,(post.title, post.content, post.published))
     #new_post = cursor.fetchone() #return the post we just created
@@ -128,7 +112,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 
 
 @app.put("/posts/{id}")
-def update_post(id: int, updated_post:Post, db: Session = Depends(get_db)):
+def update_post(id: int, updated_post:schemas.PostCreate, db: Session = Depends(get_db)):
     #cursor.execute("""UPDATE posts SET title=%s, content=%s, published=%s WHERE id=%s RETURNING *""",
     #            (post.title, post.content, post.published, str(id)))
 

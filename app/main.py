@@ -1,5 +1,5 @@
 import time
-from typing import Optional
+from typing import Optional, List
 from fastapi import Body, FastAPI, Response, status, HTTPException, Depends
 import psycopg
 import psycopg2
@@ -49,7 +49,7 @@ async def root():
 
 #layout for working with raw sql within our python file
 #fetching posts from data base
-@app.get("/posts")
+@app.get("/posts", response_model=List[schemas.PostResponse])
 def get_posts(db: Session = Depends(get_db)):
     #cursor.execute("rollback") #fixes the DatabaseError: current transaction is aborted, commands ignored until end of transaction block
     #cursor.execute("""SELECT * FROM posts """)
@@ -80,7 +80,7 @@ def create_posts(post:schemas.PostCreate, db: Session = Depends(get_db)):
     db.refresh(new_post) #this is equivalent to the returning * in sql 
     return new_post
 
-@app.get("/posts/{id}")
+@app.get("/posts/{id}", response_model=schemas.PostResponse)
 def get_post(id: int, db: Session = Depends(get_db)):
     
     #cursor.execute("""SELECT * from posts WHERE id = %(idnumber)s""", {"idnumber": str(id)})
@@ -111,7 +111,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     db.commit()
 
 
-@app.put("/posts/{id}")
+@app.put("/posts/{id}", response_model=schemas.PostResponse)
 def update_post(id: int, updated_post:schemas.PostCreate, db: Session = Depends(get_db)):
     #cursor.execute("""UPDATE posts SET title=%s, content=%s, published=%s WHERE id=%s RETURNING *""",
     #            (post.title, post.content, post.published, str(id)))

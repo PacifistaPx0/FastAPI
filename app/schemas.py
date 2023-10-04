@@ -19,11 +19,8 @@ class PostCreate(PostBase):
 #section handles us sending data to the user
 #the fields within the classes is the data we will receive 
 #We extend Postbase so we can inherit the defined fields within that class
-class PostResponse(BaseModel):
+class PostResponse(PostBase):
     id: int
-    title: str
-    content: str
-    published: bool
     created_at: datetime
 
     class Config:
